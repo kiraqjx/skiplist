@@ -1,6 +1,8 @@
 package skiplist
 
 import (
+	"bytes"
+	"encoding/binary"
 	"math/rand"
 	"testing"
 	"time"
@@ -26,6 +28,37 @@ func TestPut(t *testing.T) {
 	s.Put([]byte("hello"), []byte("world1"))
 	value := s.Get([]byte(("hello")))
 	assert.Equal(t, value, []byte(("world1")))
+}
+
+func TestBenchData(t *testing.T) {
+	s := getTestData()
+	for i := 0; i < 10000; i++ {
+		byteInt := intToBytes(i)
+		s.Put(byteInt, byteInt)
+	}
+
+	for i := 0; i < 10000; i++ {
+		if i%7 == 0 {
+			s.Delete(intToBytes(i))
+		}
+	}
+
+	for i := 0; i < 10000; i++ {
+		value := s.Get(intToBytes(i))
+
+		if i%7 == 0 {
+			assert.Equal(t, value, []byte(nil))
+		} else {
+			assert.Equal(t, value, intToBytes(i))
+		}
+	}
+}
+
+func intToBytes(n int) []byte {
+	x := int32(n)
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	binary.Write(bytesBuffer, binary.BigEndian, x)
+	return bytesBuffer.Bytes()
 }
 
 func getTestData() SkipList {

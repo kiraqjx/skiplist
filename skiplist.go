@@ -77,6 +77,7 @@ func (skiplist *SkipList) Put(key []byte, value []byte) {
 
 	for i := 0; i < skiplist.layer-1; i++ {
 		if i != 0 && rand.Intn(2) != 0 {
+			skiplist.count++
 			return
 		}
 
@@ -105,7 +106,7 @@ func (skiplist *SkipList) getNode(key []byte) *Node {
 				return nil
 			} else {
 				now_layer--
-				now_node = skiplist.header.next[now_layer]
+				now_node = before_one_node.next[now_layer]
 				continue
 			}
 		}
@@ -125,6 +126,9 @@ func (skiplist *SkipList) getNode(key []byte) *Node {
 		}
 
 		if is_eq == 1 {
+			if now_layer == 0 {
+				return nil
+			}
 			now_layer--
 			now_node = before_one_node.next[now_layer]
 			continue
@@ -144,12 +148,12 @@ func (skiplist *SkipList) putPre(key []byte) []*Node {
 
 	for {
 		if now_node.next == nil {
+			beforeEveryLayer[now_layer] = before_one_node
 			if now_layer == 0 {
 				return beforeEveryLayer
 			} else {
-				beforeEveryLayer[now_layer] = before_one_node
 				now_layer--
-				now_node = skiplist.header.next[now_layer]
+				now_node = before_one_node.next[now_layer]
 				continue
 			}
 		}
@@ -173,6 +177,9 @@ func (skiplist *SkipList) putPre(key []byte) []*Node {
 
 		if is_eq == 1 {
 			beforeEveryLayer[now_layer] = before_one_node
+			if now_layer == 0 {
+				return beforeEveryLayer
+			}
 			now_layer--
 			now_node = before_one_node.next[now_layer]
 			continue
