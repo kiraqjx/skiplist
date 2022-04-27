@@ -10,22 +10,22 @@ import (
 
 func TestGet(t *testing.T) {
 	s := getTestData()
-	value := s.Get("hello")
-	assert.Equal(t, value, "world")
+	value := s.Get([]byte("hello"))
+	assert.Equal(t, value, []byte("world"))
 }
 
 func TestDelete(t *testing.T) {
 	s := getTestData()
-	s.Delete("hello")
-	value := s.Get("hello")
-	assert.Equal(t, value, "")
+	s.Delete([]byte("hello"))
+	value := s.Get([]byte("hello"))
+	assert.Equal(t, value, []byte(nil))
 }
 
 func TestPut(t *testing.T) {
 	s := getTestData()
-	s.Put("hello", "world1")
-	value := s.Get("hello")
-	assert.Equal(t, value, "world1")
+	s.Put([]byte("hello"), []byte("world1"))
+	value := s.Get([]byte(("hello")))
+	assert.Equal(t, value, []byte(("world1")))
 }
 
 func getTestData() SkipList {
@@ -39,8 +39,8 @@ func getTestData() SkipList {
 	dataNodes[0] = foot
 
 	data := Node{
-		key:    "hello",
-		value:  "world",
+		key:    []byte("hello"),
+		value:  []byte("world"),
 		is_del: false,
 		next:   dataNodes,
 	}

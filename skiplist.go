@@ -1,11 +1,9 @@
 package skiplist
 
 import (
+	"bytes"
 	"math/rand"
-	"strings"
 )
-
-const MIN_LAYER_COUNT = 500
 
 type SkipList struct {
 	layer  int
@@ -14,8 +12,8 @@ type SkipList struct {
 }
 
 type Node struct {
-	key    string
-	value  string
+	key    []byte
+	value  []byte
 	is_del bool
 	next   []*Node
 }
@@ -24,17 +22,18 @@ func SkipListBuilder(layer int) SkipList {
 	layerData := make([]*Node, layer)
 
 	foot := Node{
-		key:    "",
-		value:  "",
+		key:    nil,
+		value:  nil,
 		is_del: false,
+		next:   nil,
 	}
 	for i := 0; i < layer; i++ {
 		layerData[i] = &foot
 	}
 
 	head := Node{
-		key:    "",
-		value:  "",
+		key:    nil,
+		value:  nil,
 		is_del: false,
 		next:   layerData,
 	}
@@ -46,16 +45,16 @@ func SkipListBuilder(layer int) SkipList {
 }
 
 // get value from skip list by key
-func (skiplist *SkipList) Get(key string) string {
+func (skiplist *SkipList) Get(key []byte) []byte {
 	node := skiplist.getNode(key)
 	if node == nil {
-		return ""
+		return nil
 	}
 	return node.value
 }
 
 // delete value from skip list by key
-func (skiplist *SkipList) Delete(key string) {
+func (skiplist *SkipList) Delete(key []byte) {
 	node := skiplist.getNode(key)
 	if node != nil {
 		node.is_del = true
@@ -64,7 +63,7 @@ func (skiplist *SkipList) Delete(key string) {
 }
 
 // put value by key
-func (skiplist *SkipList) Put(key string, value string) {
+func (skiplist *SkipList) Put(key []byte, value []byte) {
 	beforeNodes := skiplist.putPre(key)
 
 	layerData := make([]*Node, skiplist.layer)
@@ -77,16 +76,13 @@ func (skiplist *SkipList) Put(key string, value string) {
 	}
 
 	for i := 0; i < skiplist.layer-1; i++ {
-		if i != 0 && skiplist.count < MIN_LAYER_COUNT {
-			return
-		}
 		if i != 0 && rand.Intn(2) != 0 {
 			return
 		}
 
 		layerBeforeNode := beforeNodes[i]
 		layerNextNode := layerBeforeNode.next[i]
-		if strings.Compare(layerNextNode.key, key) == 0 {
+		if bytes.Equal(layerNextNode.key, key) {
 			layerNextNode.is_del = false
 			layerNextNode.value = value
 		} else {
@@ -98,13 +94,13 @@ func (skiplist *SkipList) Put(key string, value string) {
 }
 
 // get node from skip list by key
-func (skiplist *SkipList) getNode(key string) *Node {
+func (skiplist *SkipList) getNode(key []byte) *Node {
 	now_layer := skiplist.layer - 1
 	now_node := skiplist.header.next[now_layer]
 	before_one_node := skiplist.header
 
 	for {
-		if strings.Compare(now_node.key, "") == 0 {
+		if now_node.next == nil {
 			if now_layer == 0 {
 				return nil
 			} else {
@@ -119,7 +115,7 @@ func (skiplist *SkipList) getNode(key string) *Node {
 			continue
 		}
 
-		is_eq := strings.Compare(now_node.key, key)
+		is_eq := bytes.Compare(now_node.key, key)
 
 		if is_eq == 0 {
 			if now_node.is_del {
@@ -140,14 +136,14 @@ func (skiplist *SkipList) getNode(key string) *Node {
 }
 
 // put prepare from getting before-node in every layer
-func (skiplist *SkipList) putPre(key string) []*Node {
+func (skiplist *SkipList) putPre(key []byte) []*Node {
 	beforeEveryLayer := make([]*Node, skiplist.layer)
 	now_layer := skiplist.layer - 1
 	now_node := skiplist.header.next[now_layer]
 	before_one_node := skiplist.header
 
 	for {
-		if strings.Compare(now_node.key, "") == 0 {
+		if now_node.next == nil {
 			if now_layer == 0 {
 				return beforeEveryLayer
 			} else {
@@ -163,7 +159,7 @@ func (skiplist *SkipList) putPre(key string) []*Node {
 			continue
 		}
 
-		is_eq := strings.Compare(now_node.key, key)
+		is_eq := bytes.Compare(now_node.key, key)
 
 		if is_eq == 0 {
 			beforeEveryLayer[now_layer] = before_one_node
